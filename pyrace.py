@@ -33,6 +33,7 @@ OIL_DUR = 4
 SCORE_TICK = 1
 SCORE_BONUS = 100
 ESC = 27
+ENTER = 10
 
 class Race:
 
@@ -243,13 +244,16 @@ class GameOver:
         self.over_win.box()
         self.over_win.addstr(1, 1, "GAME OVER")
         self.over_win.addstr(2, 1, "Score:")
-        self.over_win.addstr(3, 1, "Press any key")
+        self.over_win.addstr(3, 1, "Press Enter to continue")
 
     def activate(self):
         self.over_win.addstr(2, 8, string.zfill(self.race.get_score(), 5))
         self.over_win.touchwin()
         self.over_win.refresh()
-        return self.over_win.getch()!=ESC
+        key = self.over_win.getch()
+        while not key in (ENTER, ESC):
+            key = self.over_win.getch()
+        return key!=ESC
         
 class Game:
 
