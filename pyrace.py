@@ -10,11 +10,12 @@
 # slippery oil
 # colors
 # reliable speed (even if key pressed)
+# gas, break (or link break to steering)
 
 import curses
 import random
 
-TICK = 2
+TICK = 1
 CAR = "^"
 ROAD = " "
 OBS = "X"
@@ -27,55 +28,75 @@ LR_PROB = LEFT_PROB + RIGHT_PROB
 OBS_PROB = 0.2
 ESC = 27
 
-def init(win):
-    curses.halfdelay(TICK)
-    curses.curs_set(0)
-    win.scrollok(1)
-    
+class Race:
 
-def main(win):
-    
-    init(win)
-    (he, wi) = win.getmaxyx()
-    cary = he-1
-    carx = wi/2
-    rx_max = (wi-len(RSLICE))
-    rx = rx_max/2
-    
-    for i in range(0, he):
-        win.addstr(i, rx, RSLICE)
-        
-    crash = 0
-    esc = 0
-    while not crash:
-        ch = win.getch()
-        if ch==curses.KEY_LEFT and carx>0:
-            carx -= 1
-        elif ch==curses.KEY_RIGHT and carx<wi-1:
-            carx+=1
+    def __init__(self, race_win):
+        self.race_win = race_win
+        self.race_win.scrollok(1)
+        (self.height, self.width) = race_win.getmaxyx()
+        self.cary = self.height-1
+        self.carx = self.width/2
+        self.rx_max = (self.width-len(RSLICE))
+        self.rx = self.rx_max/2
+        self.ox = None
+        for i in range(self.height):
+            self.race_win.addstr(i, self.rx, RSLICE)
+        self.crash = 0
+        self.esc = 0
+
+    def main_loop(self):
+        while not self.crash and not self.esc:
+            self.key(self.race_win.getch())
+            self.next_rslice()
+            self.next_obs()
+            self.update_screen()
+
+    def key(self, ch):
+        if ch==curses.KEY_LEFT and self.carx>0:
+            self.carx -= 1
+        elif ch==curses.KEY_RIGHT and self.carx<self.width-1:
+            self.carx += 1
         elif ch==ESC:
-            esc=1
-            break
-            
+            self.esc=1
+
+    def next_rslice(self):
         r = random.random()
         if r<LR_PROB:
-            if r<LEFT_PROB and rx>0:
-                rx -= 1
-            elif r>=LEFT_PROB and rx<rx_max:
-                rx +=1
+            if r<LEFT_PROB and self.rx>0:
+                self.rx -= 1
+            elif r>=LEFT_PROB and self.rx<self.rx_max:
+                self.rx +=1
 
+    def next_obs(self):
         r = random.random()
         if r<OBS_PROB:
-            ox = int(RWIDTH*(r/OBS_PROB))
+            self.ox = int(RWIDTH*(r/OBS_PROB))
         else:
-            ox = None
+            self.ox = None
 
-        win.scroll(-1)
-        win.addstr(0, rx, RSLICE)
-        if ox!=None:
-            win.addstr(0, rx+len(EDGE)+ox, OBS)
-        crash = win.inch(cary, carx)!=ord(ROAD)
-        win.addstr(cary, carx, CAR)
+    def update_screen(self):
+        self.race_win.scroll(-1)
+        self.race_win.addstr(0, self.rx, RSLICE)
+        if self.ox!=None:
+            self.race_win.addstr(0, self.rx+len(EDGE)+self.ox, OBS)
+        self.crash = self.race_win.inch(self.cary, self.carx)!=ord(ROAD)
+        self.race_win.addstr(self.cary, self.carx, CAR)
+        
+class Game:
+
+    def __init__(self, main_win):
+        self.main_win = main_win
+        self.race = Race(main_win)
+
+    def main_loop(self):
+        self.race.main_loop()
+
+
+def main(win):
+    curses.halfdelay(TICK)
+    curses.curs_set(0)
+    game = Game(win)
+    game.main_loop()
         
 
 curses.wrapper(main)
