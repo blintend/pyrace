@@ -22,7 +22,8 @@ TICK = 0.15
 CAR = "^"
 ROAD = " "
 BONUS = "*"
-OBS = "X"
+OBS = "="
+OIL = "Q"
 EDGE = "[]"
 RWIDTH = 8
 RSLICE = EDGE + ROAD*RWIDTH + EDGE
@@ -31,6 +32,8 @@ RIGHT_PROB = LEFT_PROB
 LR_PROB = LEFT_PROB + RIGHT_PROB
 BONUS_PROB = 0.05
 OBS_PROB = 0.2
+OIL_PROB = 0.2
+OIL_DUR = 4
 SCORE_TICK = 1
 SCORE_BONUS = 100
 ESC = 27
@@ -50,6 +53,8 @@ class Race:
         self.rx = self.rx_max/2
         self.bx = None
         self.ox = None
+        self.oilx = None
+        self.slip = 0
         for i in range(self.height):
             self.race_win.addstr(i, self.rx, RSLICE)
         self.crash = 0
@@ -65,16 +70,18 @@ class Race:
 
     def tick(self):
         self.score += SCORE_TICK
+        if self.slip>0: self.slip -= 1
         self.next_rslice()
         self.next_bonus()
         self.next_obs()
+        self.next_oil()
         self.update_screen()
 
     def key(self, ch):
         delta = 0
-        if ch==curses.KEY_LEFT and self.carx>0:
+        if ch==curses.KEY_LEFT and self.carx>0 and self.slip<=0:
             delta = -1
-        elif ch==curses.KEY_RIGHT and self.carx<self.width-1:
+        elif ch==curses.KEY_RIGHT and self.carx<self.width-1 and self.slip<=0:
             delta = 1
         elif ch==ESC:
             self.esc=1
@@ -103,6 +110,13 @@ class Race:
         else:
             self.ox = None
 
+    def next_oil(self):
+        r = random.random()
+        if r<OIL_PROB:
+            self.oilx = int(RWIDTH*(r/OIL_PROB))
+        else:
+            self.oilx = None
+
     def update_screen(self):
         self.race_win.scroll(-1)
         self.race_win.addstr(0, self.rx, RSLICE)
@@ -117,10 +131,14 @@ class Race:
             self.race_win.addstr(0, self.rx+len(EDGE)+self.bx, BONUS)
         if self.ox!=None:
             self.race_win.addstr(0, self.rx+len(EDGE)+self.ox, OBS)
+        if self.oilx!=None:
+            self.race_win.addstr(0, self.rx+len(EDGE)+self.oilx, OIL)
         c = self.race_win.inch(self.cary, self.carx)
         if c==ord(BONUS):
             self.score += SCORE_BONUS
-        self.crash = c!=ord(ROAD) and c!=ord(BONUS)
+        self.crash = c not in (ord(ROAD), ord(BONUS), ord(OIL), ord(CAR))
+        if c==ord(OIL):
+            self.slip += OIL_DUR
         if delta!=0: self.race_win.addstr(self.cary, self.carx-delta, ROAD)
         self.race_win.addstr(self.cary, self.carx, CAR)
         
@@ -149,7 +167,6 @@ class StatusLine:
 class EventLoop:
 
     def __init__(self, win, tick, tick_func, key_func, quit_func):
-        self.log = open("event.log", "w")
         self.win = win
         self.tick = tick
         self.tick_func = tick_func
@@ -160,10 +177,8 @@ class EventLoop:
     def run(self):
         while not self.quit_func():
             now = time.time()
-            self.log.write('next'+str(self.next_tick)+'time '+str(now))
             still = self.next_tick-now
             if still<=0:
-                self.log.write('tick\n')
                 self.tick_func()
                 self.next_tick += self.tick
             else:
