@@ -2,7 +2,6 @@
 
 # TODO:
 #
-# reliable speed (even if key pressed)
 # high score; nice status line
 # fuel; fuel pickup
 # config file
@@ -11,12 +10,15 @@
 # colors
 # gas, break (or link break to steering)
 # high score table
+# pause key
 
 import curses
 import random
 import string
+import time
+import math
 
-TICK = 1
+TICK = 0.15
 CAR = "^"
 ROAD = " "
 BONUS = "*"
@@ -52,23 +54,32 @@ class Race:
             self.race_win.addstr(i, self.rx, RSLICE)
         self.crash = 0
         self.esc = 0
+        self.event_loop = EventLoop(self.race_win, TICK,
+                                    self.tick, self.key, self.is_quit)
 
-    def main_loop(self):
-        while not self.crash and not self.esc:
-            self.score += SCORE_TICK
-            self.key(self.race_win.getch())
-            self.next_rslice()
-            self.next_bonus()
-            self.next_obs()
-            self.update_screen()
+    def run(self):
+        self.event_loop.run()
+
+    def is_quit(self):
+        return self.crash or self.esc
+
+    def tick(self):
+        self.score += SCORE_TICK
+        self.next_rslice()
+        self.next_bonus()
+        self.next_obs()
+        self.update_screen()
 
     def key(self, ch):
+        delta = 0
         if ch==curses.KEY_LEFT and self.carx>0:
-            self.carx -= 1
+            delta = -1
         elif ch==curses.KEY_RIGHT and self.carx<self.width-1:
-            self.carx += 1
+            delta = 1
         elif ch==ESC:
             self.esc=1
+        self.carx += delta
+        self.update_car(delta)
 
     def next_rslice(self):
         r = random.random()
@@ -95,6 +106,13 @@ class Race:
     def update_screen(self):
         self.race_win.scroll(-1)
         self.race_win.addstr(0, self.rx, RSLICE)
+        self.update_car(0)
+        self.status_line.set_score(self.score)
+        self.status_line.noutrefresh()
+        self.race_win.noutrefresh()
+        curses.doupdate()
+
+    def update_car(self, delta):
         if self.bx!=None:
             self.race_win.addstr(0, self.rx+len(EDGE)+self.bx, BONUS)
         if self.ox!=None:
@@ -103,44 +121,71 @@ class Race:
         if c==ord(BONUS):
             self.score += SCORE_BONUS
         self.crash = c!=ord(ROAD) and c!=ord(BONUS)
+        if delta!=0: self.race_win.addstr(self.cary, self.carx-delta, ROAD)
         self.race_win.addstr(self.cary, self.carx, CAR)
-        self.status_line.update_score(self.score)
-        self.status_line.refresh()
-
+        
 class StatusLine:
 
     SCORE_LABEL = "Score: "
     SCORE_WIDTH = 5
     
-    def __init__(self, status_win):
+    def __init__(self, status_win, score=0):
         self.status_win = status_win
         self.width = status_win.getmaxyx()[1]
         self.score_pos = self.width-StatusLine.SCORE_WIDTH-1
         self.status_win.addstr(0, self.score_pos-len(StatusLine.SCORE_LABEL),
                                StatusLine.SCORE_LABEL)
-        
-    def update_score(self, score):
-        self.status_win.addstr(0, self.score_pos,
-                               string.zfill(score, StatusLine.SCORE_WIDTH))
+        self.score = score
 
-    def refresh(self):
-        self.status_win.refresh()
+    def set_score(self, score):
+        self.score = score
         
+    def noutrefresh(self):
+        self.status_win.addstr(0, self.score_pos,
+                               string.zfill(self.score,
+                                            StatusLine.SCORE_WIDTH))
+        self.status_win.noutrefresh()
+
+class EventLoop:
+
+    def __init__(self, win, tick, tick_func, key_func, quit_func):
+        self.log = open("event.log", "w")
+        self.win = win
+        self.tick = tick
+        self.tick_func = tick_func
+        self.key_func = key_func
+        self.quit_func = quit_func
+        self.next_tick = time.time()
+        
+    def run(self):
+        while not self.quit_func():
+            now = time.time()
+            self.log.write('next'+str(self.next_tick)+'time '+str(now))
+            still = self.next_tick-now
+            if still<=0:
+                self.log.write('tick\n')
+                self.tick_func()
+                self.next_tick += self.tick
+            else:
+                self.win.timeout(1000*still)
+                ch = self.win.getch()
+                if ch != curses.ERR:
+                    self.key_func(ch)
+            
 class Game:
 
     def __init__(self, main_win):
+        curses.curs_set(0)
         self.main_win = main_win
         self.race = Race(main_win)
 
-    def main_loop(self):
-        self.race.main_loop()
+    def run(self):
+        self.race.run()
 
 
 def main(win):
-    curses.halfdelay(TICK)
-    curses.curs_set(0)
     game = Game(win)
-    game.main_loop()
+    game.run()
         
 
 curses.wrapper(main)
