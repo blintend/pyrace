@@ -32,6 +32,7 @@ class Race:
 
     def __init__(self, race_win):
         self.race_win = race_win
+        self.race_win.keypad(1)
         self.race_win.scrollok(1)
         (self.height, self.width) = race_win.getmaxyx()
         self.cary = self.height-1
@@ -86,7 +87,8 @@ class Game:
 
     def __init__(self, main_win):
         self.main_win = main_win
-        self.race = Race(main_win)
+        race_win = main_win.derwin(1, 0)
+        self.race = Race(race_win)
 
     def main_loop(self):
         self.race.main_loop()
