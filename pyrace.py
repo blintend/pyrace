@@ -19,14 +19,18 @@ import string
 TICK = 1
 CAR = "^"
 ROAD = " "
+BONUS = "*"
 OBS = "X"
-EDGE = "||"
+EDGE = "[]"
 RWIDTH = 8
 RSLICE = EDGE + ROAD*RWIDTH + EDGE
 LEFT_PROB = 0.4
 RIGHT_PROB = LEFT_PROB
 LR_PROB = LEFT_PROB + RIGHT_PROB
+BONUS_PROB = 0.05
 OBS_PROB = 0.2
+SCORE_TICK = 1
+SCORE_BONUS = 100
 ESC = 27
 
 class Race:
@@ -42,6 +46,7 @@ class Race:
         self.carx = self.width/2
         self.rx_max = (self.width-len(RSLICE))
         self.rx = self.rx_max/2
+        self.bx = None
         self.ox = None
         for i in range(self.height):
             self.race_win.addstr(i, self.rx, RSLICE)
@@ -50,9 +55,10 @@ class Race:
 
     def main_loop(self):
         while not self.crash and not self.esc:
-            self.score += 1
+            self.score += SCORE_TICK
             self.key(self.race_win.getch())
             self.next_rslice()
+            self.next_bonus()
             self.next_obs()
             self.update_screen()
 
@@ -72,6 +78,13 @@ class Race:
             elif r>=LEFT_PROB and self.rx<self.rx_max:
                 self.rx +=1
 
+    def next_bonus(self):
+        r = random.random()
+        if r<BONUS_PROB:
+            self.bx = int(RWIDTH*(r/BONUS_PROB))
+        else:
+            self.bx = None
+
     def next_obs(self):
         r = random.random()
         if r<OBS_PROB:
@@ -82,9 +95,14 @@ class Race:
     def update_screen(self):
         self.race_win.scroll(-1)
         self.race_win.addstr(0, self.rx, RSLICE)
+        if self.bx!=None:
+            self.race_win.addstr(0, self.rx+len(EDGE)+self.bx, BONUS)
         if self.ox!=None:
             self.race_win.addstr(0, self.rx+len(EDGE)+self.ox, OBS)
-        self.crash = self.race_win.inch(self.cary, self.carx)!=ord(ROAD)
+        c = self.race_win.inch(self.cary, self.carx)
+        if c==ord(BONUS):
+            self.score += SCORE_BONUS
+        self.crash = c!=ord(ROAD) and c!=ord(BONUS)
         self.race_win.addstr(self.cary, self.carx, CAR)
         self.status_line.update_score(self.score)
         self.status_line.refresh()
