@@ -5,8 +5,6 @@
 # high score; nice status line
 # fuel; fuel pickup
 # config file
-# nice splash, Game Over
-# colors
 # gas, break (or link break to steering)
 # high score table
 # pause key
@@ -15,7 +13,6 @@ import curses
 import random
 import string
 import time
-import math
 
 TICK = 0.15
 CAR = "^"
@@ -40,6 +37,7 @@ ESC = 27
 class Race:
 
     def __init__(self, main_win):
+        self.main_win = main_win
         self.race_win = main_win.derwin(1, 0)
         self.race_win.keypad(1)
         self.race_win.scrollok(1)
@@ -54,13 +52,18 @@ class Race:
         Race.OIL_PAIR = curses.color_pair(3)
         Race.CAR_PAIR = curses.color_pair(3)
         self.race_win.bkgdset(" ", curses.color_pair(1))
-        self.race_win.clear()
         (self.height, self.width) = self.race_win.getmaxyx()
         self.status_line = StatusLine(main_win.derwin(1, self.width, 0, 0))
+        self.rx_max = (self.width-len(RSLICE))
+        self.event_loop = EventLoop(self.race_win, TICK,
+                                    self.tick, self.key, self.is_quit)
+        self.reset()
+        
+    def reset(self):
+        self.race_win.erase()
         self.score = 0
         self.cary = self.height-1
         self.carx = self.width/2
-        self.rx_max = (self.width-len(RSLICE))
         self.rx = self.rx_max/2
         self.bx = None
         self.ox = None
@@ -70,15 +73,22 @@ class Race:
             self.race_win.addstr(i, self.rx, RSLICE, Race.ROAD_PAIR)
         self.crash = 0
         self.esc = 0
-        self.event_loop = EventLoop(self.race_win, TICK,
-                                    self.tick, self.key, self.is_quit)
-
+        
     def run(self):
+        self.reset()
+        self.main_win.touchwin()
+        self.main_win.refresh()
         self.event_loop.run()
 
     def is_quit(self):
         return self.crash or self.esc
 
+    def is_esc(self):
+        return self.esc
+    
+    def get_score(self):
+        return self.score
+    
     def tick(self):
         self.score += SCORE_TICK
         if self.slip>0: self.slip -= 1
@@ -202,16 +212,60 @@ class EventLoop:
                 ch = self.win.getch()
                 if ch != curses.ERR:
                     self.key_func(ch)
-            
+
+class MainMenu:
+
+    def __init__(self, main_win):
+        self.menu_win = curses.newwin(main_win.getmaxyx()[0],
+                                      main_win.getmaxyx()[1],
+                                      main_win.getbegyx()[0],
+                                      main_win.getbegyx()[1])
+        self.menu_win.keypad(1)
+        self.menu_win.box()
+        self.menu_win.addstr(1, 1, "PYRACE")
+        self.menu_win.addstr(2, 1, "Press any key to start")
+
+    def activate(self):
+        self.menu_win.touchwin()
+        self.menu_win.refresh()
+        return self.menu_win.getch()!=ESC
+        
+class GameOver:
+
+    def __init__(self, race):
+        main_win = race.main_win
+        self.race = race
+        self.over_win = curses.newwin(main_win.getmaxyx()[0]/2,
+                                      main_win.getmaxyx()[1]/2,
+                                      main_win.getbegyx()[0],
+                                      main_win.getbegyx()[1])
+        self.over_win.keypad(1)
+        self.over_win.box()
+        self.over_win.addstr(1, 1, "GAME OVER")
+        self.over_win.addstr(2, 1, "Score:")
+        self.over_win.addstr(3, 1, "Press any key")
+
+    def activate(self):
+        self.over_win.addstr(2, 8, string.zfill(self.race.get_score(), 5))
+        self.over_win.touchwin()
+        self.over_win.refresh()
+        return self.over_win.getch()!=ESC
+        
 class Game:
 
     def __init__(self, main_win):
         curses.curs_set(0)
         self.main_win = main_win
         self.race = Race(main_win)
+        self.menu = MainMenu(main_win)
+        self.over = GameOver(self.race)
 
     def run(self):
-        self.race.run()
+        while self.menu.activate():
+            self.race.run()
+            if not self.race.is_esc():
+                cont = self.over.activate()
+                if not cont: break
 
 
 def main(win):
