@@ -6,7 +6,6 @@
 # fuel; fuel pickup
 # config file
 # nice splash, Game Over
-# slippery oil
 # colors
 # gas, break (or link break to steering)
 # high score table
@@ -44,6 +43,18 @@ class Race:
         self.race_win = main_win.derwin(1, 0)
         self.race_win.keypad(1)
         self.race_win.scrollok(1)
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
+        Race.FIELD_PAIR = curses.color_pair(1)
+        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_BLUE)
+        Race.ROAD_PAIR = curses.color_pair(2)
+        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLUE)
+        Race.BONUS_PAIR = curses.color_pair(3)
+        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLUE)
+        Race.OBS_PAIR = curses.color_pair(4)
+        Race.OIL_PAIR = curses.color_pair(3)
+        Race.CAR_PAIR = curses.color_pair(3)
+        self.race_win.bkgdset(" ", curses.color_pair(1))
+        self.race_win.clear()
         (self.height, self.width) = self.race_win.getmaxyx()
         self.status_line = StatusLine(main_win.derwin(1, self.width, 0, 0))
         self.score = 0
@@ -56,7 +67,7 @@ class Race:
         self.oilx = None
         self.slip = 0
         for i in range(self.height):
-            self.race_win.addstr(i, self.rx, RSLICE)
+            self.race_win.addstr(i, self.rx, RSLICE, Race.ROAD_PAIR)
         self.crash = 0
         self.esc = 0
         self.event_loop = EventLoop(self.race_win, TICK,
@@ -119,7 +130,7 @@ class Race:
 
     def update_screen(self):
         self.race_win.scroll(-1)
-        self.race_win.addstr(0, self.rx, RSLICE)
+        self.race_win.addstr(0, self.rx, RSLICE, Race.ROAD_PAIR)
         self.update_car(0)
         self.status_line.set_score(self.score)
         self.status_line.noutrefresh()
@@ -128,19 +139,24 @@ class Race:
 
     def update_car(self, delta):
         if self.bx!=None:
-            self.race_win.addstr(0, self.rx+len(EDGE)+self.bx, BONUS)
+            self.race_win.addstr(0, self.rx+len(EDGE)+self.bx,
+                                 BONUS, Race.BONUS_PAIR)
         if self.ox!=None:
-            self.race_win.addstr(0, self.rx+len(EDGE)+self.ox, OBS)
+            self.race_win.addstr(0, self.rx+len(EDGE)+self.ox,
+                                 OBS, Race.OBS_PAIR)
         if self.oilx!=None:
-            self.race_win.addstr(0, self.rx+len(EDGE)+self.oilx, OIL)
-        c = self.race_win.inch(self.cary, self.carx)
+            self.race_win.addstr(0, self.rx+len(EDGE)+self.oilx,
+                                 OIL, Race.OIL_PAIR)
+        c = self.race_win.inch(self.cary, self.carx) & 255
         if c==ord(BONUS):
             self.score += SCORE_BONUS
         self.crash = c not in (ord(ROAD), ord(BONUS), ord(OIL), ord(CAR))
         if c==ord(OIL):
             self.slip += OIL_DUR
-        if delta!=0: self.race_win.addstr(self.cary, self.carx-delta, ROAD)
-        self.race_win.addstr(self.cary, self.carx, CAR)
+        if delta!=0: self.race_win.addstr(self.cary, self.carx-delta, ROAD,
+                                          Race.ROAD_PAIR)
+        self.race_win.addstr(self.cary, self.carx,
+                             CAR, Race.CAR_PAIR)
         
 class StatusLine:
 
