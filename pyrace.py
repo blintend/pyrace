@@ -209,7 +209,7 @@ class EventLoop:
                 self.tick_func()
                 self.next_tick += self.tick
             else:
-                self.win.timeout(1000*still)
+                self.win.timeout(int(1000*still))
                 ch = self.win.getch()
                 if ch != curses.ERR:
                     self.key_func(ch)
