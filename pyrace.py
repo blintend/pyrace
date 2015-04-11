@@ -236,10 +236,8 @@ class GameOver:
     def __init__(self, race):
         main_win = race.main_win
         self.race = race
-        self.over_win = curses.newwin(main_win.getmaxyx()[0]/2,
-                                      main_win.getmaxyx()[1]/2,
-                                      main_win.getbegyx()[0],
-                                      main_win.getbegyx()[1])
+        [my, mx], [y0, x0] = main_win.getmaxyx(), main_win.getbegyx()
+        self.over_win = curses.newwin(my/2, mx/2, y0 + my/4, x0 + mx/4)
         self.over_win.keypad(1)
         self.over_win.box()
         self.over_win.addstr(1, 1, "GAME OVER")
