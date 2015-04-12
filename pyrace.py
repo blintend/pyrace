@@ -240,9 +240,11 @@ class GameOver:
         self.over_win = curses.newwin(my/2, mx/2, y0 + my/4, x0 + mx/4)
         self.over_win.keypad(1)
         self.over_win.box()
-        self.over_win.addstr(1, 1, "GAME OVER")
+        self.addcenter(self.over_win, 1, "GAME OVER")
         self.over_win.addstr(2, 1, "Score:")
-        self.over_win.addstr(3, 1, "Press Enter to continue")
+        self.addcenter(self.over_win, 3, "Press Enter to continue")
+
+    def addcenter(self, win, y, str): win.addstr(y, (win.getmaxyx()[1] - len(str)) / 2, str)
 
     def activate(self):
         self.over_win.addstr(2, 8, string.zfill(self.race.get_score(), 5))
