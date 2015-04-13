@@ -223,8 +223,8 @@ class MainMenu:
                                       main_win.getbegyx()[1])
         self.menu_win.keypad(1)
         self.menu_win.box()
-        self.menu_win.addstr(1, 1, "PYRACE")
-        self.menu_win.addstr(2, 1, "Press any key to start")
+        addcenter(self.menu_win, 2, "PYRACE")
+        addcenter(self.menu_win, 4, "Press any key to start")
 
     def activate(self):
         self.menu_win.touchwin()
@@ -240,11 +240,9 @@ class GameOver:
         self.over_win = curses.newwin(my/2, mx/2, y0 + my/4, x0 + mx/4)
         self.over_win.keypad(1)
         self.over_win.box()
-        self.addcenter(self.over_win, 1, "GAME OVER")
+        addcenter(self.over_win, 1, "GAME OVER")
         self.over_win.addstr(2, 1, "Score:")
-        self.addcenter(self.over_win, 3, "Press Enter to continue")
-
-    def addcenter(self, win, y, str): win.addstr(y, (win.getmaxyx()[1] - len(str)) / 2, str)
+        addcenter(self.over_win, 3, "Press Enter to continue")
 
     def activate(self):
         self.over_win.addstr(2, 8, string.zfill(self.race.get_score(), 5))
@@ -254,7 +252,7 @@ class GameOver:
         while not key in (ENTER, ESC):
             key = self.over_win.getch()
         return key!=ESC
-        
+
 class Game:
 
     def __init__(self, main_win):
@@ -271,7 +269,11 @@ class Game:
                 cont = self.over.activate()
                 if not cont: break
 
+# Utilities
 
+def addcenter(win, y, str): win.addstr(y, (win.getmaxyx()[1] - len(str)) / 2, str)
+
+# main
 def main(win):
     game = Game(win)
     game.run()
