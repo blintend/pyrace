@@ -54,7 +54,7 @@ class Race:
         Race.CAR_PAIR = curses.color_pair(3)
         self.race_win.bkgdset(" ", curses.color_pair(1))
         (self.height, self.width) = self.race_win.getmaxyx()
-        self.status_line = StatusLine(main_win.derwin(1, self.width, 0, 0))
+        self.status_line = StatusLineView(main_win.derwin(1, self.width, 0, 0))
         self.rx_max = (self.width-len(RSLICE))
         self.event_loop = EventLoop(self.race_win, TICK,
                                     self.tick, self.key, self.is_quit)
@@ -143,8 +143,7 @@ class Race:
         self.race_win.scroll(-1)
         self.race_win.addstr(0, self.rx, RSLICE, Race.ROAD_PAIR)
         self.update_car(0)
-        self.status_line.set_score(self.score)
-        self.status_line.noutrefresh()
+        self.status_line.noutrefresh(self.score)
         self.race_win.noutrefresh()
         curses.doupdate()
 
@@ -169,26 +168,21 @@ class Race:
         self.race_win.addstr(self.cary, self.carx,
                              CAR, Race.CAR_PAIR)
         
-class StatusLine:
+class StatusLineView:
 
     SCORE_LABEL = "Score: "
     SCORE_WIDTH = 5
     
-    def __init__(self, status_win, score=0):
+    def __init__(self, status_win):
         self.status_win = status_win
         self.width = status_win.getmaxyx()[1]
-        self.score_pos = self.width-StatusLine.SCORE_WIDTH-1
-        self.status_win.addstr(0, self.score_pos-len(StatusLine.SCORE_LABEL),
-                               StatusLine.SCORE_LABEL)
-        self.score = score
+        self.score_pos = self.width-StatusLineView.SCORE_WIDTH-1
+        self.status_win.addstr(0, self.score_pos-len(StatusLineView.SCORE_LABEL),
+                               StatusLineView.SCORE_LABEL)
 
-    def set_score(self, score):
-        self.score = score
-        
-    def noutrefresh(self):
+    def noutrefresh(self, score):
         self.status_win.addstr(0, self.score_pos,
-                               string.zfill(self.score,
-                                            StatusLine.SCORE_WIDTH))
+                               string.zfill(score, StatusLineView.SCORE_WIDTH))
         self.status_win.noutrefresh()
 
 class EventLoop:
