@@ -108,6 +108,7 @@ class Race:
         elif ch==ESC:
             self.esc=1
         self.carx += delta
+        self.car_sniff()
         self.update_car(delta)
 
     def next_rslice(self):
@@ -139,9 +140,18 @@ class Race:
         else:
             self.oilx = None
 
+    def car_sniff(self):
+        c = self.race_win.inch(self.cary, self.carx) & 255
+        if c==ord(BONUS):
+            self.score += SCORE_BONUS
+        self.crash = c not in (ord(ROAD), ord(BONUS), ord(OIL), ord(CAR))
+        if c==ord(OIL):
+            self.slip += OIL_DUR
+
     def update_screen(self):
         self.race_win.scroll(-1)
         self.race_win.addstr(0, self.rx, RSLICE, Race.ROAD_PAIR)
+        self.car_sniff()
         self.update_car(0)
         self.status_line.noutrefresh(self.score)
         self.race_win.noutrefresh()
@@ -157,17 +167,11 @@ class Race:
         if self.oilx!=None:
             self.race_win.addstr(0, self.rx+len(EDGE)+self.oilx,
                                  OIL, Race.OIL_PAIR)
-        c = self.race_win.inch(self.cary, self.carx) & 255
-        if c==ord(BONUS):
-            self.score += SCORE_BONUS
-        self.crash = c not in (ord(ROAD), ord(BONUS), ord(OIL), ord(CAR))
-        if c==ord(OIL):
-            self.slip += OIL_DUR
         if delta!=0: self.race_win.addstr(self.cary, self.carx-delta, ROAD,
                                           Race.ROAD_PAIR)
         self.race_win.addstr(self.cary, self.carx,
                              CAR, Race.CAR_PAIR)
-        
+
 class StatusLineView:
 
     SCORE_LABEL = "Score: "
