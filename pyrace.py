@@ -97,6 +97,7 @@ class Race:
         self.next_bonus()
         self.next_obs()
         self.next_oil()
+        self.car_sniff(1)
         self.update_screen()
 
     def key(self, ch):
@@ -108,7 +109,7 @@ class Race:
         elif ch==ESC:
             self.esc=1
         self.carx += delta
-        self.car_sniff()
+        self.car_sniff(0)
         self.update_car(delta)
 
     def next_rslice(self):
@@ -140,8 +141,8 @@ class Race:
         else:
             self.oilx = None
 
-    def car_sniff(self):
-        c = self.race_win.inch(self.cary, self.carx) & 255
+    def car_sniff(self, dist):
+        c = self.race_win.inch(self.cary - dist, self.carx) & 255
         if c==ord(BONUS):
             self.score += SCORE_BONUS
         self.crash = c not in (ord(ROAD), ord(BONUS), ord(OIL), ord(CAR))
@@ -151,7 +152,6 @@ class Race:
     def update_screen(self):
         self.race_win.scroll(-1)
         self.race_win.addstr(0, self.rx, RSLICE, Race.ROAD_PAIR)
-        self.car_sniff()
         self.update_car(0)
         self.status_line.noutrefresh(self.score)
         self.race_win.noutrefresh()
