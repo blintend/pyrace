@@ -153,12 +153,15 @@ class Race:
             self.slip += OIL_DUR
 
     def update_screen(self):
+        self.update_race_win()
+        self.status_line.noutrefresh(self.score)
+        curses.doupdate()
+
+    def update_race_win(self):
         self.race_win.scroll(-1)
         self.race_win.addstr(0, self.rx, RSLICE, Race.ROAD_PAIR)
         self.update_car(0)
-        self.status_line.noutrefresh(self.score)
         self.race_win.noutrefresh()
-        curses.doupdate()
 
     def update_car(self, delta):
         if self.bx!=None:
