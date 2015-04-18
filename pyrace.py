@@ -40,6 +40,7 @@ class Race:
     def __init__(self, main_win):
         self.main_win = main_win
         self.race_win = main_win.derwin(1, 0)
+        self.race_view = RaceView(self.race_win)
         self.race_win.keypad(1)
         self.race_win.scrollok(1)
         self._init_global_colors()
@@ -113,7 +114,7 @@ class Race:
             self.esc=1
         self.carx += delta
         self.car_sniff(0)
-        self.update_car(delta)
+        self.race_view.update_car(delta, self)
 
     def next_rslice(self):
         r = random.random()
@@ -160,22 +161,28 @@ class Race:
     def update_race_win(self):
         self.race_win.scroll(-1)
         self.race_win.addstr(0, self.rx, RSLICE, Race.ROAD_PAIR)
-        self.update_car(0)
+        self.race_view.update_car(0, self)
         self.race_win.noutrefresh()
 
-    def update_car(self, delta):
-        if self.bx!=None:
-            self.race_win.addstr(0, self.rx+len(EDGE)+self.bx,
+
+class RaceView:
+
+    def __init__(self, race_win):
+        self.race_win = race_win
+
+    def update_car(self, delta, model):
+        if model.bx!=None:
+            self.race_win.addstr(0, model.rx+len(EDGE)+model.bx,
                                  BONUS, Race.BONUS_PAIR)
-        if self.ox!=None:
-            self.race_win.addstr(0, self.rx+len(EDGE)+self.ox,
+        if model.ox!=None:
+            self.race_win.addstr(0, model.rx+len(EDGE)+model.ox,
                                  OBS, Race.OBS_PAIR)
-        if self.oilx!=None:
-            self.race_win.addstr(0, self.rx+len(EDGE)+self.oilx,
+        if model.oilx!=None:
+            self.race_win.addstr(0, model.rx+len(EDGE)+model.oilx,
                                  OIL, Race.OIL_PAIR)
-        if delta!=0: self.race_win.addstr(self.cary, self.carx-delta, ROAD,
+        if delta!=0: self.race_win.addstr(model.cary, model.carx-delta, ROAD,
                                           Race.ROAD_PAIR)
-        self.race_win.addstr(self.cary, self.carx,
+        self.race_win.addstr(model.cary, model.carx,
                              CAR, Race.CAR_PAIR)
 
 class StatusLineView:
