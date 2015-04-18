@@ -41,28 +41,12 @@ class Race:
         self.main_win = main_win
         self.race_win = main_win.derwin(1, 0)
         self.race_view = RaceView(self.race_win)
-        self.race_win.keypad(1)
-        self.race_win.scrollok(1)
-        self._init_global_colors()
-        self.race_win.bkgdset(" ", Race.FIELD_PAIR)
-        (self.height, self.width) = self.race_win.getmaxyx()
+        self.height, self.width = self.race_view.height, self.race_view.width
         self.status_line = StatusLineView(main_win.derwin(1, self.width, 0, 0))
         self.rx_max = (self.width-len(RSLICE))
         self.event_loop = EventLoop(self.race_win, TICK,
                                     self.tick, self.key, self.is_quit)
         self.reset()
-
-    def _init_global_colors(self):
-        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
-        Race.FIELD_PAIR = curses.color_pair(1)
-        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_BLUE)
-        Race.ROAD_PAIR = curses.color_pair(2)
-        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLUE)
-        Race.BONUS_PAIR = curses.color_pair(3)
-        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLUE)
-        Race.OBS_PAIR = curses.color_pair(4)
-        Race.OIL_PAIR = curses.color_pair(3)
-        Race.CAR_PAIR = curses.color_pair(3)
 
     def reset(self):
         self.race_win.erase()
@@ -163,6 +147,23 @@ class RaceView:
 
     def __init__(self, race_win):
         self.race_win = race_win
+        self.race_win.keypad(1)
+        self.race_win.scrollok(1)
+        self._init_global_colors()
+        self.race_win.bkgdset(" ", Race.FIELD_PAIR)
+        (self.height, self.width) = self.race_win.getmaxyx()
+
+    def _init_global_colors(self):
+        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
+        Race.FIELD_PAIR = curses.color_pair(1)
+        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_BLUE)
+        Race.ROAD_PAIR = curses.color_pair(2)
+        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLUE)
+        Race.BONUS_PAIR = curses.color_pair(3)
+        curses.init_pair(4, curses.COLOR_RED, curses.COLOR_BLUE)
+        Race.OBS_PAIR = curses.color_pair(4)
+        Race.OIL_PAIR = curses.color_pair(3)
+        Race.CAR_PAIR = curses.color_pair(3)
 
     def update_race_win(self, model):
         self.race_win.scroll(-1)
