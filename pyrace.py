@@ -154,21 +154,21 @@ class Race:
             self.slip += OIL_DUR
 
     def update_screen(self):
-        self.update_race_win()
+        self.race_view.update_race_win(self)
         self.status_line.noutrefresh(self.score)
         curses.doupdate()
-
-    def update_race_win(self):
-        self.race_win.scroll(-1)
-        self.race_win.addstr(0, self.rx, RSLICE, Race.ROAD_PAIR)
-        self.race_view.update_car(0, self)
-        self.race_win.noutrefresh()
 
 
 class RaceView:
 
     def __init__(self, race_win):
         self.race_win = race_win
+
+    def update_race_win(self, model):
+        self.race_win.scroll(-1)
+        self.race_win.addstr(0, model.rx, RSLICE, Race.ROAD_PAIR)
+        self.update_car(0, model)
+        self.race_win.noutrefresh()
 
     def update_car(self, delta, model):
         if model.bx!=None:
