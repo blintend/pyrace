@@ -42,6 +42,16 @@ class Race:
         self.race_win = main_win.derwin(1, 0)
         self.race_win.keypad(1)
         self.race_win.scrollok(1)
+        self._init_global_colors()
+        self.race_win.bkgdset(" ", Race.FIELD_PAIR)
+        (self.height, self.width) = self.race_win.getmaxyx()
+        self.status_line = StatusLineView(main_win.derwin(1, self.width, 0, 0))
+        self.rx_max = (self.width-len(RSLICE))
+        self.event_loop = EventLoop(self.race_win, TICK,
+                                    self.tick, self.key, self.is_quit)
+        self.reset()
+
+    def _init_global_colors(self):
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
         Race.FIELD_PAIR = curses.color_pair(1)
         curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_BLUE)
@@ -52,14 +62,7 @@ class Race:
         Race.OBS_PAIR = curses.color_pair(4)
         Race.OIL_PAIR = curses.color_pair(3)
         Race.CAR_PAIR = curses.color_pair(3)
-        self.race_win.bkgdset(" ", curses.color_pair(1))
-        (self.height, self.width) = self.race_win.getmaxyx()
-        self.status_line = StatusLineView(main_win.derwin(1, self.width, 0, 0))
-        self.rx_max = (self.width-len(RSLICE))
-        self.event_loop = EventLoop(self.race_win, TICK,
-                                    self.tick, self.key, self.is_quit)
-        self.reset()
-        
+
     def reset(self):
         self.race_win.erase()
         self.score = 0
