@@ -44,7 +44,7 @@ class Race:
         self.height, self.width = self.race_view.height, self.race_view.width
         self.status_line = StatusLineView(main_win.derwin(1, self.width, 0, 0))
         self.rx_max = (self.width-len(RSLICE))
-        self.event_loop = EventLoop(self.race_win, TICK,
+        self.event_loop = EventLoop(self.main_win, TICK,
                                     self.tick, self.key, self.is_quit)
         self.reset()
 
@@ -99,6 +99,7 @@ class Race:
         self.carx += delta
         self.car_sniff(0)
         self.race_view.update_car(delta, self)
+        curses.doupdate()
 
     def next_rslice(self):
         r = random.random()
@@ -169,7 +170,6 @@ class RaceView:
         self.race_win.scroll(-1)
         self.race_win.addstr(0, model.rx, RSLICE, Race.ROAD_PAIR)
         self.update_car(0, model)
-        self.race_win.noutrefresh()
 
     def update_car(self, delta, model):
         if model.bx!=None:
@@ -185,6 +185,7 @@ class RaceView:
                                           Race.ROAD_PAIR)
         self.race_win.addstr(model.cary, model.carx,
                              CAR, Race.CAR_PAIR)
+        self.race_win.noutrefresh()
 
 class StatusLineView:
 
