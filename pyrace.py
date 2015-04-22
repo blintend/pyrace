@@ -44,8 +44,6 @@ class Race:
         self.height, self.width = self.race_view.height, self.race_view.width
         self.status_line = StatusLineView(main_win.derwin(1, self.width, 0, 0))
         self.rx_max = (self.width-len(RSLICE))
-        self.event_loop = EventLoop(self.main_win, TICK,
-                                    self.tick, self.key, self.is_quit)
         self.reset()
 
     def reset(self):
@@ -67,7 +65,6 @@ class Race:
         self.reset()
         self.main_win.touchwin()
         self.main_win.refresh()
-        self.event_loop.run()
 
     def is_quit(self):
         return self.crash or self.esc
@@ -272,12 +269,15 @@ class Game:
         curses.curs_set(0)
         self.main_win = main_win
         self.race = Race(main_win)
+        self.event_loop = EventLoop(main_win, TICK,
+                                    self.race.tick, self.race.key, self.race.is_quit)
         self.menu = MainMenu(main_win)
         self.over = GameOver(self.race)
 
     def run(self):
         while self.menu.activate():
             self.race.run()
+            self.event_loop.run()
             if not self.race.is_esc():
                 cont = self.over.activate()
                 if not cont: break
