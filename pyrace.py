@@ -47,7 +47,6 @@ class Race:
         self.reset()
 
     def reset(self):
-        self.race_win.erase()
         self.score = 0
         self.cary = self.height-1
         self.carx = self.width/2
@@ -56,8 +55,6 @@ class Race:
         self.ox = None
         self.oilx = None
         self.slip = 0
-        for i in range(self.height):
-            self.race_win.addstr(i, self.rx, RSLICE, Race.ROAD_PAIR)
         self.crash = 0
         self.esc = 0
         
@@ -162,6 +159,11 @@ class RaceView:
         Race.OBS_PAIR = curses.color_pair(4)
         Race.OIL_PAIR = curses.color_pair(3)
         Race.CAR_PAIR = curses.color_pair(3)
+
+    def print_initial(self, rx):
+        self.race_win.erase()
+        for i in range(self.height):
+            self.race_win.addstr(i, rx, RSLICE, Race.ROAD_PAIR)
 
     def update_race_win(self, model):
         self.race_win.scroll(-1)
@@ -277,6 +279,7 @@ class Game:
     def run(self):
         while self.menu.activate():
             self.race.run()
+            self.race.race_view.print_initial(self.race.rx)
             self.event_loop.run()
             if not self.race.is_esc():
                 cont = self.over.activate()
