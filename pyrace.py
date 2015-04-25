@@ -205,10 +205,10 @@ class StatusLineView:
 
 class EventLoop:
 
-    def __init__(self, win, tick, tick_func, key_func, quit_func):
-        self.win = win
+    def __init__(self, tick, tick_func, wait_key_func, key_func, quit_func):
         self.tick = tick
         self.tick_func = tick_func
+        self.wait_key_func = wait_key_func
         self.key_func = key_func
         self.quit_func = quit_func
         self.next_tick = time.time()
@@ -221,8 +221,7 @@ class EventLoop:
                 self.tick_func()
                 self.next_tick += self.tick
             else:
-                self.win.timeout(int(1000*still))
-                ch = self.win.getch()
+                ch = self.wait_key_func(still)
                 if ch != curses.ERR:
                     self.key_func(ch)
 
@@ -271,10 +270,14 @@ class Game:
         curses.curs_set(0)
         self.main_win = main_win
         self.race = Race(main_win)
-        self.event_loop = EventLoop(main_win, TICK,
-                                    self.race.tick, self.race.key, self.race.is_quit)
+        self.event_loop = EventLoop(TICK,
+                self.race.tick, self.wait_key, self.race.key, self.race.is_quit)
         self.menu = MainMenu(main_win)
         self.over = GameOver(self.race)
+
+    def wait_key(self, wait_sec):
+        self.main_win.timeout(int(1000*wait_sec))
+        return self.main_win.getch()
 
     def run(self):
         while self.menu.activate():
