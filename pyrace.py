@@ -83,6 +83,7 @@ class Race:
         self.update_screen()
 
     def key(self, ch):
+        if ch == curses.ERR: return
         delta = 0
         if ch==curses.KEY_LEFT and self.carx>0 and self.slip<=0:
             delta = -1
@@ -222,8 +223,7 @@ class EventLoop:
                 self.next_tick += self.tick
             else:
                 ch = self.wait_key_func(still)
-                if ch != curses.ERR:
-                    self.key_func(ch)
+                self.key_func(ch)
 
 class MainMenu:
 
