@@ -290,8 +290,8 @@ class Game:
 def addcenter(win, y, str): win.addstr(y, (win.getmaxyx()[1] - len(str)) / 2, str)
 
 # main
-def main(win):
-    game = Game(win)
+def main(stdscr):
+    game = Game(stdscr)
     game.run()
         
 
