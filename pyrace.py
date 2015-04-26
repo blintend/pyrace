@@ -38,6 +38,7 @@ ENTER = 10
 class Race:
 
     def __init__(self, main_win):
+        self.main_view = MainView(main_win)
         self.main_win = main_win
         self.race_win = main_win.derwin(1, 0)
         self.race_view = RaceView(self.race_win)
@@ -137,6 +138,12 @@ class Race:
         self.race_view.update_race_win(self)
         self.status_line.noutrefresh(self.score)
         curses.doupdate()
+
+
+class MainView:
+
+    def __init__(self, main_win):
+        self.main_win = main_win
 
 
 class RaceView:
