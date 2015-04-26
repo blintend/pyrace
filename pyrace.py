@@ -61,8 +61,7 @@ class Race:
         
     def run(self):
         self.reset()
-        self.main_win.touchwin()
-        self.main_win.refresh()
+        self.main_view.initial_refresh()
 
     def is_quit(self):
         return self.crash or self.esc
@@ -145,6 +144,10 @@ class MainView:
     def __init__(self, main_win):
         self.main_win = main_win
 
+
+    def initial_refresh(self):
+        self.main_win.touchwin()
+        self.main_win.refresh()
 
 class RaceView:
 
