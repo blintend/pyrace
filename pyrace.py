@@ -43,7 +43,6 @@ class Race:
         self.race_win = main_win.derwin(1, 0)
         self.race_view = RaceView(self.race_win)
         self.height, self.width = self.race_view.height, self.race_view.width
-        self.status_line = StatusLineView(main_win.derwin(1, self.width, 0, 0))
         self.rx_max = (self.width-len(RSLICE))
         self.reset()
 
@@ -135,7 +134,7 @@ class Race:
 
     def update_screen(self):
         self.race_view.update_race_win(self)
-        self.status_line.noutrefresh(self.score)
+        self.main_view.status_line_noutrefresh(self.score)
         curses.doupdate()
 
 
@@ -143,11 +142,14 @@ class MainView:
 
     def __init__(self, main_win):
         self.main_win = main_win
-
+        self.status_line = StatusLineView(main_win.derwin(1, main_win.getmaxyx()[1], 0, 0))
 
     def initial_refresh(self):
         self.main_win.touchwin()
         self.main_win.refresh()
+
+    def status_line_noutrefresh(self, score):
+        self.status_line.noutrefresh(score)
 
 class RaceView:
 
