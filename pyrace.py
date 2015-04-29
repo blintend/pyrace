@@ -40,8 +40,7 @@ class Race:
     def __init__(self, main_win):
         self.main_view = MainView(main_win)
         self.main_win = main_win
-        self.race_win = main_win.derwin(1, 0)
-        self.race_view = RaceView(self.race_win)
+        self.race_view = self.main_view.race_view
         self.height, self.width = self.race_view.height, self.race_view.width
         self.rx_max = (self.width-len(RSLICE))
         self.reset()
@@ -142,6 +141,8 @@ class MainView:
 
     def __init__(self, main_win):
         self.main_win = main_win
+        self.race_win = main_win.derwin(1, 0)
+        self.race_view = RaceView(self.race_win)
         self.status_line = StatusLineView(main_win.derwin(1, main_win.getmaxyx()[1], 0, 0))
 
     def initial_refresh(self):
