@@ -78,7 +78,7 @@ class Race:
         self.next_obs()
         self.next_oil()
         self.car_sniff(1)
-        self.update_screen()
+        self.main_view.render(self)
 
     def key(self, ch):
         if ch == curses.ERR: return
@@ -131,11 +131,6 @@ class Race:
         if c==ord(OIL):
             self.slip += OIL_DUR
 
-    def update_screen(self):
-        self.race_view.update_race_win(self)
-        self.main_view.status_line_noutrefresh(self.score)
-        curses.doupdate()
-
 
 class MainView:
 
@@ -149,8 +144,11 @@ class MainView:
         self.main_win.touchwin()
         self.main_win.refresh()
 
-    def status_line_noutrefresh(self, score):
-        self.status_line.noutrefresh(score)
+    def render(self, model):
+        self.race_view.update_race_win(model)
+        self.status_line.noutrefresh(model.score)
+        curses.doupdate()
+
 
 class RaceView:
 
