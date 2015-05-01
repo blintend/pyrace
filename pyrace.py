@@ -123,7 +123,7 @@ class Race:
             self.oilx = None
 
     def car_sniff(self, dist):
-        c = self.race_view.char_at(self.cary - dist, self.carx) & 255
+        c = self.main_view.char_at(self.cary - dist, self.carx) & 255
         if c==ord(BONUS):
             self.score += SCORE_BONUS
         self.crash = c not in (ord(ROAD), ord(BONUS), ord(OIL), ord(CAR))
@@ -152,6 +152,8 @@ class MainView:
         self.status_line.noutrefresh(model.score)
         curses.doupdate()
 
+    def char_at(self, y, x):
+        return self.race_view.char_at(y, x)
 
 class RaceView:
 
