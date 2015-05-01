@@ -91,8 +91,7 @@ class Race:
             self.esc=1
         self.carx += delta
         self.car_sniff(0)
-        self.race_view.update_car(delta, self)
-        curses.doupdate()
+        self.main_view.render_onmove(delta, self)
 
     def next_rslice(self):
         r = random.random()
@@ -143,6 +142,10 @@ class MainView:
     def initial_refresh(self):
         self.main_win.touchwin()
         self.main_win.refresh()
+
+    def render_onmove(self, delta, model):
+        self.race_view.update_car(delta, model)
+        curses.doupdate()
 
     def render(self, model):
         self.race_view.update_race_win(model)
