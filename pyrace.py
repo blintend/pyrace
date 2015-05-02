@@ -39,9 +39,8 @@ class Race:
 
     def __init__(self, main_win):
         self.main_view = MainView(main_win)
-        self.main_win = main_win
         self.race_view = self.main_view.race_view
-        self.height, self.width = self.race_view.height, self.race_view.width
+        self.height, self.width = self.main_view.get_race_maxyx()
         self.rx_max = (self.width-len(RSLICE))
         self.reset()
 
@@ -151,6 +150,9 @@ class MainView:
         self.race_view.update_race_win(model)
         self.status_line.noutrefresh(model.score)
         curses.doupdate()
+
+    def get_race_maxyx(self):
+        return (self.race_view.height, self.race_view.width)
 
     def char_at(self, y, x):
         return self.race_view.char_at(y, x)
