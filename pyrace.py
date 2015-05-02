@@ -39,7 +39,6 @@ class Race:
 
     def __init__(self, main_win):
         self.main_view = MainView(main_win)
-        self.race_view = self.main_view.race_view
         self.height, self.width = self.main_view.get_race_maxyx()
         self.rx_max = (self.width-len(RSLICE))
         self.reset()
@@ -137,6 +136,9 @@ class MainView:
         self.race_win = main_win.derwin(1, 0)
         self.race_view = RaceView(self.race_win)
         self.status_line = StatusLineView(main_win.derwin(1, main_win.getmaxyx()[1], 0, 0))
+
+    def print_initial(self, rx):
+        self.race_view.print_initial(rx)
 
     def initial_refresh(self):
         self.main_win.touchwin()
@@ -302,7 +304,7 @@ class Game:
     def run(self):
         while self.menu.activate():
             self.race.run()
-            self.race.race_view.print_initial(self.race.rx)
+            self.race.main_view.print_initial(self.race.rx)
             self.event_loop.run()
             if not self.race.is_esc():
                 cont = self.over.activate(self.race.get_score())
