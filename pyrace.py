@@ -264,9 +264,7 @@ class MainMenu:
         
 class GameOver:
 
-    def __init__(self, race):
-        main_win = race.main_win
-        self.race = race
+    def __init__(self, main_win):
         [my, mx], [y0, x0] = main_win.getmaxyx(), main_win.getbegyx()
         self.over_win = curses.newwin(my/2, mx/2, y0 + my/4, x0 + mx/4)
         self.over_win.keypad(1)
@@ -275,8 +273,8 @@ class GameOver:
         self.over_win.addstr(4, 1, "Score:")
         addcenter(self.over_win, 6, "Press Enter to continue")
 
-    def activate(self):
-        self.over_win.addstr(4, 8, string.zfill(self.race.get_score(), 5))
+    def activate(self, score):
+        self.over_win.addstr(4, 8, string.zfill(score, 5))
         self.over_win.touchwin()
         self.over_win.refresh()
         key = self.over_win.getch()
@@ -293,7 +291,7 @@ class Game:
         self.event_loop = EventLoop(TICK,
                 self.race.tick, self.wait_key, self.race.key, self.race.is_quit)
         self.menu = MainMenu(main_win)
-        self.over = GameOver(self.race)
+        self.over = GameOver(main_win)
 
     def wait_key(self, wait_sec):
         self.main_win.timeout(int(1000*wait_sec))
@@ -305,7 +303,7 @@ class Game:
             self.race.race_view.print_initial(self.race.rx)
             self.event_loop.run()
             if not self.race.is_esc():
-                cont = self.over.activate()
+                cont = self.over.activate(self.race.get_score())
                 if not cont: break
 
 # Utilities
