@@ -37,8 +37,8 @@ ENTER = 10
 
 class Race:
 
-    def __init__(self, main_win):
-        self.main_view = MainView(main_win)
+    def __init__(self, main_view):
+        self.main_view = main_view
         self.height, self.width = self.main_view.get_race_maxyx()
         self.rx_max = (self.width-len(RSLICE))
         self.reset()
@@ -291,7 +291,8 @@ class Game:
     def __init__(self, main_win):
         curses.curs_set(0)
         self.main_win = main_win
-        self.race = Race(main_win)
+        self.main_view = MainView(main_win)
+        self.race = Race(self.main_view)
         self.event_loop = EventLoop(TICK,
                 self.race.tick, self.wait_key, self.race.key, self.race.is_quit)
         self.menu = MainMenu(main_win)
