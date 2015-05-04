@@ -76,7 +76,6 @@ class Race:
         self.next_obs()
         self.next_oil()
         self.car_sniff(1)
-        self.main_view.render(self)
 
     def key(self, ch):
         if ch == curses.ERR: return
@@ -294,9 +293,13 @@ class Game:
         self.main_view = MainView(main_win)
         self.race = Race(self.main_view)
         self.event_loop = EventLoop(TICK,
-                self.race.tick, self.wait_key, self.race.key, self.race.is_quit)
+                self.tick, self.wait_key, self.race.key, self.race.is_quit)
         self.menu = MainMenu(main_win)
         self.over = GameOver(main_win)
+
+    def tick(self):
+        self.race.tick()
+        self.main_view.render(self.race)
 
     def wait_key(self, wait_sec):
         self.main_win.timeout(int(1000*wait_sec))
