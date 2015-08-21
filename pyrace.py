@@ -191,13 +191,13 @@ class RaceView:
         self.update_car(0, model)
 
     def update_car(self, delta, model):
-        if model.bx!=None:
+        if model.bx is not None:
             self.race_win.addstr(0, model.rx+len(EDGE)+model.bx,
                                  BONUS, Race.BONUS_PAIR)
-        if model.ox!=None:
+        if model.ox is not None:
             self.race_win.addstr(0, model.rx+len(EDGE)+model.ox,
                                  OBS, Race.OBS_PAIR)
-        if model.oilx!=None:
+        if model.oilx is not None:
             self.race_win.addstr(0, model.rx+len(EDGE)+model.oilx,
                                  OIL, Race.OIL_PAIR)
         if delta!=0: self.race_win.addstr(model.cary, model.carx-delta, ROAD,
